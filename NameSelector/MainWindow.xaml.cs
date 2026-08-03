@@ -46,7 +46,13 @@ namespace NameSelector
 
         private void StudentCard_Click(object sender, RoutedEventArgs e)
         {
-            var student = (sender as FrameworkElement)?.DataContext as Student;
+            var element = sender as FrameworkElement;
+            if (element == null)
+            {
+                return;
+            }
+
+            var student = element.DataContext as Student;
             if (student == null)
             {
                 return;

@@ -11,11 +11,16 @@ namespace NameSelector.Converters
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            bool isCalled = values != null && values.Length > 0 && values[0] is bool b && b;
-            int order = 0;
-            if (values != null && values.Length > 1 && values[1] is int i)
+            bool isCalled = false;
+            if (values != null && values.Length > 0 && values[0] is bool)
             {
-                order = i;
+                isCalled = (bool)values[0];
+            }
+
+            int order = 0;
+            if (values != null && values.Length > 1 && values[1] is int)
+            {
+                order = (int)values[1];
             }
 
             if (isCalled && order > 0)

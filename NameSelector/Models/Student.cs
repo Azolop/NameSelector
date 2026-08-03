@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using Newtonsoft.Json;
 
 namespace NameSelector.Models
 {
@@ -12,15 +11,12 @@ namespace NameSelector.Models
         private int _order;
 
         /// <summary>编号，从 1 开始，全量重写名单时重新按顺序赋值。</summary>
-        [JsonProperty("Id")]
         public int Id { get; set; }
 
         /// <summary>姓名。</summary>
-        [JsonProperty("Name")]
         public string Name { get; set; }
 
         /// <summary>是否已被点过名。</summary>
-        [JsonProperty("IsCalled")]
         public bool IsCalled
         {
             get { return _isCalled; }
@@ -36,7 +32,6 @@ namespace NameSelector.Models
         }
 
         /// <summary>点名次序，从 1 开始；未点名为 0。</summary>
-        [JsonProperty("Order")]
         public int Order
         {
             get { return _order; }
@@ -55,7 +50,10 @@ namespace NameSelector.Models
 
         private void OnPropertyChanged(string propertyName)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
     }
 }

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Web.Script.Serialization;
 using System.Windows;
 using NameSelector.Models;
-using Newtonsoft.Json;
 
 namespace NameSelector.Services
 {
@@ -25,7 +25,7 @@ namespace NameSelector.Services
                 if (File.Exists(DataFilePath))
                 {
                     string json = File.ReadAllText(DataFilePath, Encoding.UTF8);
-                    AppData data = JsonConvert.DeserializeObject<AppData>(json);
+                    AppData data = new JavaScriptSerializer().Deserialize<AppData>(json);
                     if (data != null)
                     {
                         if (data.Students == null)
@@ -78,7 +78,7 @@ namespace NameSelector.Services
         {
             try
             {
-                string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+                string json = new JavaScriptSerializer().Serialize(data);
                 File.WriteAllText(DataFilePath, json, new UTF8Encoding(false));
             }
             catch (Exception ex)
