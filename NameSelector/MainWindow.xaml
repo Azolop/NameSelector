@@ -188,35 +188,35 @@
                     converters:Scale.FontSize="20,18"
                     Background="#27AE60"
                     Click="EditList_Click">
-                <TextBlock Text="📝 修改名单" TextWrapping="Wrap" TextAlignment="Center" />
+                <TextBlock Text="修改名单" TextWrapping="Wrap" TextAlignment="Center" />
             </Button>
             <Button Margin="5"
                     Style="{StaticResource AppButton}"
                     converters:Scale.FontSize="20,18"
                     Background="#7F8C8D"
                     Click="EndRollCall_Click">
-                <TextBlock Text="🔚 结束本次点名" TextWrapping="Wrap" TextAlignment="Center" />
+                <TextBlock Text="结束本次点名" TextWrapping="Wrap" TextAlignment="Center" />
             </Button>
             <Button Margin="5"
                     Style="{StaticResource AppButton}"
                     converters:Scale.FontSize="20,18"
                     Background="#E74C3C"
                     Click="RandomAll_Click">
-                <TextBlock Text="🎲 随机选人（全部）" TextWrapping="Wrap" TextAlignment="Center" />
+                <TextBlock Text="随机选人（全部）" TextWrapping="Wrap" TextAlignment="Center" />
             </Button>
             <Button Margin="5"
                     Style="{StaticResource AppButton}"
                     converters:Scale.FontSize="20,18"
                     Background="#1A5276"
                     Click="RandomUncalled_Click">
-                <TextBlock Text="🎲 随机选人（未点）" TextWrapping="Wrap" TextAlignment="Center" />
+                <TextBlock Text="随机选人（未点）" TextWrapping="Wrap" TextAlignment="Center" />
             </Button>
             <Button Margin="5"
                     Style="{StaticResource AppButton}"
                     converters:Scale.FontSize="20,18"
                     Background="#2980B9"
                     Click="RandomCalled_Click">
-                <TextBlock Text="🎲 随机选人（已点）" TextWrapping="Wrap" TextAlignment="Center" />
+                <TextBlock Text="随机选人（已点）" TextWrapping="Wrap" TextAlignment="Center" />
             </Button>
         </UniformGrid>
 
