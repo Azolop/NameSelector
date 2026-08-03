@@ -1,0 +1,36 @@
+<Window x:Class="NameSelector.ResultWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:NameSelector.Converters"
+        Title="选人结果"
+        Width="660" Height="400"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="#2C3E50"
+        FontFamily="Microsoft YaHei"
+        ShowInTaskbar="False"
+        PreviewMouseLeftButtonDown="Window_PreviewMouseLeftButtonDown"
+        KeyDown="Window_KeyDown">
+    <Grid>
+        <TextBlock x:Name="ResultNameText"
+                   converters:Scale.FontSize="84,72"
+                   FontWeight="Bold"
+                   Foreground="#E74C3C"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Margin="40,24">
+            <TextBlock.Effect>
+                <DropShadowEffect ShadowDepth="3" BlurRadius="8" Opacity="0.5" Color="#7B000000" />
+            </TextBlock.Effect>
+        </TextBlock>
+        <TextBlock Text="点击任意处关闭"
+                   converters:Scale.FontSize="18,18"
+                   Foreground="#BDC3C7"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Bottom"
+                   Margin="0,0,0,18" />
+    </Grid>
+</Window>
