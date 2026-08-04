@@ -108,6 +108,8 @@
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed" />
+                                <Setter Property="Foreground" Value="#FFFFFF" />
+                                <Setter Property="FontWeight" Value="DemiBold" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsCalled}" Value="True">
                                         <Setter Property="Visibility" Value="Visible" />
