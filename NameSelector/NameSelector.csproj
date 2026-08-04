@@ -79,7 +79,7 @@
       <DependentUpon>ResultWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Converters\OrderStatusConverter.cs" />
+    <Compile Include="Converters\StatusTextConverter.cs" />
     <Compile Include="Converters\Scale.cs" />
     <Compile Include="Models\AppData.cs" />
     <Compile Include="Models\Student.cs" />

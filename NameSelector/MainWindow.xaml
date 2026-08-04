@@ -14,7 +14,8 @@
         Background="#F5F6F7"
         Closing="Window_Closing">
     <Window.Resources>
-        <converters:OrderStatusConverter x:Key="OrderStatusConverter" />
+        <converters:StatusTextConverter x:Key="StatusTextConverter" />
+        <converters:OrderOnlyConverter x:Key="OrderOnlyConverter" />
 
         <!-- 统计卡片通用样式 -->
         <Style x:Key="StatCard" TargetType="Border">
@@ -30,9 +31,9 @@
         <DataTemplate x:Key="StudentCardTemplate" DataType="{x:Type models:Student}">
             <Button Click="StudentCard_Click"
                     Cursor="Hand"
-                    converters:Scale.Height="88,64"
+                    converters:Scale.Height="78,60"
                     Margin="4"
-                    Padding="10,6"
+                    Padding="8,4"
                     ToolTip="点击切换点名状态">
                 <Button.Style>
                     <Style TargetType="Button">
@@ -68,7 +69,7 @@
                 </Button.Style>
                 <StackPanel>
                     <TextBlock Text="{Binding Name}"
-                               converters:Scale.FontSize="22,20"
+                               converters:Scale.FontSize="20,20"
                                TextAlignment="Center"
                                TextWrapping="Wrap">
                         <TextBlock.Style>
@@ -85,14 +86,9 @@
                         </TextBlock.Style>
                     </TextBlock>
                     <TextBlock converters:Scale.FontSize="18,18"
-                               Margin="0,4,0,0"
-                               TextAlignment="Center">
-                        <TextBlock.Text>
-                            <MultiBinding Converter="{StaticResource OrderStatusConverter}">
-                                <Binding Path="IsCalled" />
-                                <Binding Path="Order" />
-                            </MultiBinding>
-                        </TextBlock.Text>
+                               Margin="0,2,0,0"
+                               TextAlignment="Center"
+                               Text="{Binding IsCalled, Converter={StaticResource StatusTextConverter}}">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontWeight" Value="Bold" />
@@ -105,6 +101,26 @@
                                 </Style.Triggers>
                             </Style>
                         </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock converters:Scale.FontSize="18,18"
+                               Margin="0,2,0,0"
+                               TextAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsCalled}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                        <TextBlock.Text>
+                            <MultiBinding Converter="{StaticResource OrderOnlyConverter}">
+                                <Binding Path="IsCalled" />
+                                <Binding Path="Order" />
+                            </MultiBinding>
+                        </TextBlock.Text>
                     </TextBlock>
                 </StackPanel>
             </Button>
@@ -132,51 +148,66 @@
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0" Style="{StaticResource StatCard}">
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock x:Name="TotalCountText"
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Text="总人数："
+                               converters:Scale.FontSize="22,18"
+                               Foreground="#7F8C8D"
+                               TextAlignment="Left" />
+                    <TextBlock Grid.Column="1"
+                               x:Name="TotalCountText"
                                converters:Scale.FontSize="30,18"
                                FontWeight="Bold"
                                Foreground="#2C3E50"
                                Text="0"
-                               TextAlignment="Center" />
-                    <TextBlock converters:Scale.FontSize="18,18"
-                               Foreground="#7F8C8D"
-                               Text="总人数"
-                               TextAlignment="Center"
-                               Margin="0,2,0,0" />
-                </StackPanel>
+                               TextAlignment="Right" />
+                </Grid>
             </Border>
 
             <Border Grid.Row="1" Style="{StaticResource StatCard}">
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock x:Name="UncalledCountText"
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Text="未点数："
+                               converters:Scale.FontSize="22,18"
+                               Foreground="#7F8C8D"
+                               TextAlignment="Left" />
+                    <TextBlock Grid.Column="1"
+                               x:Name="UncalledCountText"
                                converters:Scale.FontSize="30,18"
                                FontWeight="Bold"
                                Foreground="#E67E22"
                                Text="0"
-                               TextAlignment="Center" />
-                    <TextBlock converters:Scale.FontSize="18,18"
-                               Foreground="#7F8C8D"
-                               Text="未点数"
-                               TextAlignment="Center"
-                               Margin="0,2,0,0" />
-                </StackPanel>
+                               TextAlignment="Right" />
+                </Grid>
             </Border>
 
             <Border Grid.Row="2" Style="{StaticResource StatCard}">
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock x:Name="CalledCountText"
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Text="已点数："
+                               converters:Scale.FontSize="22,18"
+                               Foreground="#7F8C8D"
+                               TextAlignment="Left" />
+                    <TextBlock Grid.Column="1"
+                               x:Name="CalledCountText"
                                converters:Scale.FontSize="30,18"
                                FontWeight="Bold"
                                Foreground="#1A5276"
                                Text="0"
-                               TextAlignment="Center" />
-                    <TextBlock converters:Scale.FontSize="18,18"
-                               Foreground="#7F8C8D"
-                               Text="已点数"
-                               TextAlignment="Center"
-                               Margin="0,2,0,0" />
-                </StackPanel>
+                               TextAlignment="Right" />
+                </Grid>
             </Border>
 
             <Button Grid.Row="3"
