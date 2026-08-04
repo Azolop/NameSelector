@@ -15,7 +15,7 @@ namespace NameSelector
     public partial class MainWindow : Window
     {
         private readonly AppData _data;
-        private readonly Random _random = new Random();
+        private Random _random = new Random();
 
         public MainWindow()
         {
@@ -74,6 +74,13 @@ namespace NameSelector
 
             UpdateStats();
             DataService.Save(_data);
+
+            // 检查是否所有人都已点完
+            int uncalled = _data.Students.Count(s => !s.IsCalled);
+            if (uncalled == 0 && _data.Students.Count > 0)
+            {
+                MessageBox.Show(this, "所有同学都已点名完毕！", "点名完成", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         // ---------- 结束本次点名 ----------
@@ -106,6 +113,9 @@ namespace NameSelector
 
             UpdateStats();
             DataService.Save(_data);
+
+            // 重置随机实例，避免重置后连续抽中同一人
+            _random = new Random();
         }
 
         // ---------- 随机选人 ----------

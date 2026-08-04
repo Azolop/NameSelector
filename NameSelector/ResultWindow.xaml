@@ -4,6 +4,7 @@
         xmlns:converters="clr-namespace:NameSelector.Converters"
         Title="选人结果 - by Poloza"
         Width="660" Height="400"
+        MinWidth="400" MinHeight="250"
         WindowStartupLocation="CenterOwner"
         WindowStyle="None"
         ResizeMode="NoResize"

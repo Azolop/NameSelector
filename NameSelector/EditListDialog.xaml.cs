@@ -55,6 +55,8 @@ namespace NameSelector
 
             DataService.Save(_data);
             Saved = true;
+            System.Media.SystemSounds.Asterisk.Play();
+            MessageBox.Show(this, "名单已更新", "修改名单", MessageBoxButton.OK, MessageBoxImage.Information);
             Close();
         }
 
