@@ -245,7 +245,7 @@
                     converters:Scale.FontSize="18,18"
                     Background="#7F8C8D"
                     Click="EndRollCall_Click">
-                <TextBlock Text="结束本次点名" TextWrapping="Wrap" TextAlignment="Center" />
+                <TextBlock Text="结束本轮点名" TextWrapping="Wrap" TextAlignment="Center" />
             </Button>
 
             <Button Grid.Row="7"
