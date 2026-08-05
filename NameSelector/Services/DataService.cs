@@ -101,12 +101,13 @@ namespace NameSelector.Services
             return data;
         }
 
-        public static void Save(AppData data)
+        public static bool Save(AppData data)
         {
             try
             {
                 string json = new JavaScriptSerializer().Serialize(data);
                 File.WriteAllText(DataFilePath, json, new UTF8Encoding(false));
+                return true;
             }
             catch (Exception ex)
             {
@@ -116,6 +117,7 @@ namespace NameSelector.Services
                     "点名分组工具",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
+                return false;
             }
         }
     }

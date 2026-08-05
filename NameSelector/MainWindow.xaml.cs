@@ -16,6 +16,7 @@ namespace NameSelector
     {
         private readonly AppData _data;
         private Random _random = new Random();
+        private readonly Dictionary<int, DateTime> _lastCardClick = new Dictionary<int, DateTime>();
 
         public MainWindow()
         {
@@ -24,6 +25,25 @@ namespace NameSelector
             RefreshAll();
             // 比例式自适应：每次布局更新按窗口尺寸重新套用缩放
             LayoutUpdated += (s, e) => Converters.Scale.Apply(this, 1180, 720);
+
+            // 按工作区钳制初始尺寸，避免 1024×768 等小屏上窗口超出屏幕
+            Rect workArea = SystemParameters.WorkArea;
+            if (Width > workArea.Width)
+            {
+                Width = workArea.Width;
+            }
+            if (Height > workArea.Height)
+            {
+                Height = workArea.Height;
+            }
+            if (MinWidth > workArea.Width)
+            {
+                MinWidth = workArea.Width;
+            }
+            if (MinHeight > workArea.Height)
+            {
+                MinHeight = workArea.Height;
+            }
         }
 
         private void RefreshAll()
@@ -58,6 +78,15 @@ namespace NameSelector
                 return;
             }
 
+            // 防抖：同一张卡片 1 秒内不应再次改变状态，避免双击误操作
+            DateTime now = DateTime.Now;
+            DateTime last;
+            if (_lastCardClick.TryGetValue(student.Id, out last) && (now - last).TotalMilliseconds < 1000)
+            {
+                return;
+            }
+            _lastCardClick[student.Id] = now;
+
             if (student.IsCalled)
             {
                 // 已点 → 未点：清除次序，NextOrder 不变。
@@ -83,20 +112,20 @@ namespace NameSelector
             }
         }
 
-        // ---------- 结束本次点名 ----------
+        // ---------- 结束本轮点名 ----------
 
         private void EndRollCall_Click(object sender, RoutedEventArgs e)
         {
             if (_data.Students.Count == 0)
             {
-                MessageBox.Show(this, "名单为空，没有可结束的点名。", "结束本次点名", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(this, "名单为空，没有可结束的点名。", "结束本轮点名", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             MessageBoxResult result = MessageBox.Show(
                 this,
-                "确定要结束本次点名吗？\n所有点名记录将被清除。",
-                "结束本次点名",
+                "确定要结束本轮点名吗？\n所有点名记录将被清除。",
+                "结束本轮点名",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
             if (result != MessageBoxResult.Yes)

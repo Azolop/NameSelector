@@ -53,11 +53,14 @@ namespace NameSelector
             }
             _data.NextOrder = 1;
 
-            DataService.Save(_data);
-            Saved = true;
-            System.Media.SystemSounds.Asterisk.Play();
-            MessageBox.Show(this, "名单已更新", "修改名单", MessageBoxButton.OK, MessageBoxImage.Information);
-            Close();
+            if (DataService.Save(_data))
+            {
+                Saved = true;
+                System.Media.SystemSounds.Asterisk.Play();
+                MessageBox.Show(this, "名单已更新", "修改名单", MessageBoxButton.OK, MessageBoxImage.Information);
+                Close();
+            }
+            // 保存失败时 DataService 已弹错误框，此处保持窗口打开以便重试，且不刷新主窗口。
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
