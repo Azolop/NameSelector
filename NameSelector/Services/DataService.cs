@@ -47,12 +47,12 @@ namespace NameSelector.Services
         }
 
         /// <summary>
-        /// 默认名单：经典的“中国最忙五人组”。
+        /// 默认名单。
         /// </summary>
         public static AppData CreateDefault()
         {
             var data = new AppData();
-            string[] defaultNames = { "张吉惟", "林国瑞", "林玟书", "林雅南", "江奕云" };
+            string[] defaultNames = { "Tom", "Jerry", "Spike" };
             for (int i = 0; i < defaultNames.Length; i++)
             {
                 data.Students.Add(new Student
