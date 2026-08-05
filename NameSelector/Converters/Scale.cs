@@ -50,11 +50,21 @@ namespace NameSelector.Converters
             return (string)element.GetValue(HeightProperty);
         }
 
+        private static DateTime _lastApplyTime = DateTime.MinValue;
+
         /// <summary>
         /// 对窗口整棵视觉树应用缩放。designWidth/designHeight 是该窗口的基准尺寸。
+        /// LayoutUpdated 每帧触发，这里按 40ms 节流，避免拖拽窗口时反复整树缩放导致卡顿。
         /// </summary>
         public static void Apply(Window window, double designWidth, double designHeight)
         {
+            DateTime now = DateTime.Now;
+            if ((now - _lastApplyTime).TotalMilliseconds < 40)
+            {
+                return;
+            }
+            _lastApplyTime = now;
+
             if (window == null)
             {
                 return;

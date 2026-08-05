@@ -32,6 +32,32 @@ namespace NameSelector.Services
                         {
                             data.Students = new List<Student>();
                         }
+                        else
+                        {
+                            // 过滤损坏数据中混入的空项，避免统计时 NullReferenceException。
+                            data.Students.RemoveAll(s => s == null);
+                        }
+
+                        // 修正异常数据：清掉非法负次序；NextOrder 不得小于“已点最大次序+1”，避免次序重复。
+                        foreach (var student in data.Students)
+                        {
+                            if (student.Order < 0)
+                            {
+                                student.Order = 0;
+                            }
+                        }
+                        int maxOrder = 0;
+                        foreach (var student in data.Students)
+                        {
+                            if (student.IsCalled && student.Order > maxOrder)
+                            {
+                                maxOrder = student.Order;
+                            }
+                        }
+                        if (data.NextOrder < maxOrder + 1)
+                        {
+                            data.NextOrder = maxOrder + 1;
+                        }
                         return data;
                     }
                 }
@@ -44,7 +70,8 @@ namespace NameSelector.Services
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "读取 namelist.json 失败，程序将使用默认名单重新开始。\n\n" + ex.Message,
+                    "读取 namelist.json 失败，程序将使用默认名单重新开始。\n\n" + ex.Message +
+                    "\n\n提示：namelist.json 需为 UTF-8 编码，请不要用记事本以 ANSI 保存，也不要在运行中手动修改。",
                     "点名分组工具",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
@@ -84,7 +111,8 @@ namespace NameSelector.Services
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "保存 namelist.json 失败。\n\n" + ex.Message,
+                    "保存 namelist.json 失败，本次改动可能未保存。\n\n" + ex.Message +
+                    "\n\n提示：请确认程序所在目录可写（不要放在 C:\\Program Files、桌面或教学机只读目录）。",
                     "点名分组工具",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
