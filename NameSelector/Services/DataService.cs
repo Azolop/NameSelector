@@ -3,87 +3,53 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Web.Script.Serialization;
-using System.Windows;
 using NameSelector.Models;
 
 namespace NameSelector.Services
 {
     /// <summary>
     /// namelist.json 的读写。文件始终位于 exe 所在目录。
+    /// 读写失败时抛出异常，由界面层负责提示用户。
     /// </summary>
     public static class DataService
     {
+        /// <summary>数据文件名。</summary>
+        public const string FileName = "namelist.json";
+
+        private static readonly JavaScriptSerializer Serializer = new JavaScriptSerializer();
+
         public static string DataFilePath
         {
-            get { return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "namelist.json"); }
+            get { return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FileName); }
         }
 
-        public static AppData Load()
+        /// <summary>
+        /// 读取名单数据；文件不存在或内容为空时创建默认名单并落盘。
+        /// 文件损坏、编码异常或首次写入失败时抛出异常。
+        /// </summary>
+        public static AppData LoadOrCreate()
         {
-            try
+            if (File.Exists(DataFilePath))
             {
-                if (File.Exists(DataFilePath))
+                string json = File.ReadAllText(DataFilePath, Encoding.UTF8);
+                AppData data = Serializer.Deserialize<AppData>(json);
+                if (data != null)
                 {
-                    string json = File.ReadAllText(DataFilePath, Encoding.UTF8);
-                    AppData data = new JavaScriptSerializer().Deserialize<AppData>(json);
-                    if (data != null)
-                    {
-                        if (data.Students == null)
-                        {
-                            data.Students = new List<Student>();
-                        }
-                        else
-                        {
-                            // 过滤损坏数据中混入的空项，避免统计时 NullReferenceException。
-                            data.Students.RemoveAll(s => s == null);
-                        }
-
-                        // 修正异常数据：清掉非法负次序；NextOrder 不得小于“已点最大次序+1”，避免次序重复。
-                        foreach (var student in data.Students)
-                        {
-                            if (student.Order < 0)
-                            {
-                                student.Order = 0;
-                            }
-                        }
-                        int maxOrder = 0;
-                        foreach (var student in data.Students)
-                        {
-                            if (student.IsCalled && student.Order > maxOrder)
-                            {
-                                maxOrder = student.Order;
-                            }
-                        }
-                        if (data.NextOrder < maxOrder + 1)
-                        {
-                            data.NextOrder = maxOrder + 1;
-                        }
-                        return data;
-                    }
+                    Normalize(data);
+                    return data;
                 }
-
-                // 未发现 namelist.json 或文件内容为空：初始化默认名单并保存。
-                AppData defaults = CreateDefaultData();
-                Save(defaults);
-                return defaults;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    "读取 namelist.json 失败，程序将使用默认名单重新开始。\n\n" + ex.Message +
-                    "\n\n提示：namelist.json 需为 UTF-8 编码，请不要用记事本以 ANSI 保存，也不要在运行中手动修改。",
-                    "点名分组工具",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
             }
 
-            return CreateDefaultData();
+            // 未发现 namelist.json 或文件内容为空：初始化默认名单并保存。
+            AppData defaults = CreateDefault();
+            Save(defaults);
+            return defaults;
         }
 
         /// <summary>
         /// 默认名单：经典的“中国最忙五人组”。
         /// </summary>
-        private static AppData CreateDefaultData()
+        public static AppData CreateDefault()
         {
             var data = new AppData();
             string[] defaultNames = { "张吉惟", "林国瑞", "林玟书", "林雅南", "江奕云" };
@@ -101,23 +67,45 @@ namespace NameSelector.Services
             return data;
         }
 
-        public static bool Save(AppData data)
+        public static void Save(AppData data)
         {
-            try
+            string json = Serializer.Serialize(data);
+            File.WriteAllText(DataFilePath, json, new UTF8Encoding(false));
+        }
+
+        /// <summary>
+        /// 修正异常数据：清掉非法负次序；NextOrder 不得小于“已点最大次序+1”，避免次序重复。
+        /// </summary>
+        private static void Normalize(AppData data)
+        {
+            if (data.Students == null)
             {
-                string json = new JavaScriptSerializer().Serialize(data);
-                File.WriteAllText(DataFilePath, json, new UTF8Encoding(false));
-                return true;
+                data.Students = new List<Student>();
+                return;
             }
-            catch (Exception ex)
+
+            // 过滤损坏数据中混入的空项，避免统计时 NullReferenceException。
+            data.Students.RemoveAll(s => s == null);
+
+            foreach (var student in data.Students)
             {
-                MessageBox.Show(
-                    "保存 namelist.json 失败，本次改动可能未保存。\n\n" + ex.Message +
-                    "\n\n提示：请确认程序所在目录可写（不要放在 C:\\Program Files、桌面或教学机只读目录）。",
-                    "点名分组工具",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-                return false;
+                if (student.Order < 0)
+                {
+                    student.Order = 0;
+                }
+            }
+
+            int maxOrder = 0;
+            foreach (var student in data.Students)
+            {
+                if (student.IsCalled && student.Order > maxOrder)
+                {
+                    maxOrder = student.Order;
+                }
+            }
+            if (data.NextOrder < maxOrder + 1)
+            {
+                data.NextOrder = maxOrder + 1;
             }
         }
     }

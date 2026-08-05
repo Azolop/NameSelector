@@ -1,11 +1,8 @@
 <Window x:Class="NameSelector.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:models="clr-namespace:NameSelector.Models"
         xmlns:converters="clr-namespace:NameSelector.Converters"
-        mc:Ignorable="d"
         Title="点名分组工具 - by Poloza"
         Height="720" Width="1180"
         MinHeight="560" MinWidth="900"
@@ -16,6 +13,11 @@
     <Window.Resources>
         <converters:StatusTextConverter x:Key="StatusTextConverter" />
         <converters:OrderOnlyConverter x:Key="OrderOnlyConverter" />
+
+        <!-- 侧栏功能按钮：全局 AppButton 基础上统一缩放字号 -->
+        <Style x:Key="SideButton" TargetType="Button" BasedOn="{StaticResource AppButton}">
+            <Setter Property="converters:Scale.FontSize" Value="18,18" />
+        </Style>
 
         <!-- 统计卡片通用样式 -->
         <Style x:Key="StatCard" TargetType="Border">
@@ -214,8 +216,7 @@
 
             <Button Grid.Row="3"
                     Margin="0,4"
-                    Style="{StaticResource AppButton}"
-                    converters:Scale.FontSize="18,18"
+                    Style="{StaticResource SideButton}"
                     Background="#E74C3C"
                     Click="RandomAll_Click">
                 <TextBlock Text="随机选人（全部）" TextWrapping="Wrap" TextAlignment="Center" />
@@ -223,8 +224,7 @@
 
             <Button Grid.Row="4"
                     Margin="0,4"
-                    Style="{StaticResource AppButton}"
-                    converters:Scale.FontSize="18,18"
+                    Style="{StaticResource SideButton}"
                     Background="#2980B9"
                     Click="RandomCalled_Click">
                 <TextBlock Text="随机选人（已点）" TextWrapping="Wrap" TextAlignment="Center" />
@@ -232,8 +232,7 @@
 
             <Button Grid.Row="5"
                     Margin="0,4"
-                    Style="{StaticResource AppButton}"
-                    converters:Scale.FontSize="18,18"
+                    Style="{StaticResource SideButton}"
                     Background="#1A5276"
                     Click="RandomUncalled_Click">
                 <TextBlock Text="随机选人（未点）" TextWrapping="Wrap" TextAlignment="Center" />
@@ -241,8 +240,7 @@
 
             <Button Grid.Row="6"
                     Margin="0,4"
-                    Style="{StaticResource AppButton}"
-                    converters:Scale.FontSize="18,18"
+                    Style="{StaticResource SideButton}"
                     Background="#7F8C8D"
                     Click="EndRollCall_Click">
                 <TextBlock Text="结束本轮点名" TextWrapping="Wrap" TextAlignment="Center" />
@@ -250,8 +248,7 @@
 
             <Button Grid.Row="7"
                     Margin="0,4"
-                    Style="{StaticResource AppButton}"
-                    converters:Scale.FontSize="18,18"
+                    Style="{StaticResource SideButton}"
                     Background="#27AE60"
                     Click="EditList_Click">
                 <TextBlock Text="修改名单" TextWrapping="Wrap" TextAlignment="Center" />

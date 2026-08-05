@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using NameSelector.Models;
 using NameSelector.Services;
 
@@ -14,20 +13,45 @@ namespace NameSelector
     /// </summary>
     public partial class MainWindow : Window
     {
+        /// <summary>比例式自适应的设计基准尺寸（与 XAML 默认窗口尺寸一致）。</summary>
+        private const double DesignWidth = 1180;
+        private const double DesignHeight = 720;
+
+        /// <summary>同一张卡片两次点击的最小间隔，避免双击误操作。</summary>
+        private const int CardClickDebounceMs = 1000;
+
         private readonly AppData _data;
-        private Random _random = new Random();
-        private readonly Dictionary<int, DateTime> _lastCardClick = new Dictionary<int, DateTime>();
+        private readonly Random _random = new Random();
+        private readonly Dictionary<Student, DateTime> _lastCardClick = new Dictionary<Student, DateTime>();
 
         public MainWindow()
         {
             InitializeComponent();
-            _data = DataService.Load();
+            _data = LoadData();
             RefreshAll();
             // 比例式自适应：加载后立即应用一次；布局变化时防抖重新应用
-            Loaded += (s, e) => Converters.Scale.ApplyNow(this, 1180, 720);
-            LayoutUpdated += (s, e) => Converters.Scale.RequestApply(this, 1180, 720);
+            Loaded += (s, e) => Converters.Scale.ApplyNow(this, DesignWidth, DesignHeight);
+            LayoutUpdated += (s, e) => Converters.Scale.RequestApply(this, DesignWidth, DesignHeight);
 
             // 按工作区钳制初始尺寸，避免 1024×768 等小屏上窗口超出屏幕
+            ClampToWorkArea();
+        }
+
+        private AppData LoadData()
+        {
+            try
+            {
+                return DataService.LoadOrCreate();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, Prompt.LoadFailure(ex), "点名分组工具", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return DataService.CreateDefault();
+            }
+        }
+
+        private void ClampToWorkArea()
+        {
             Rect workArea = SystemParameters.WorkArea;
             if (Width > workArea.Width)
             {
@@ -49,6 +73,8 @@ namespace NameSelector
 
         private void RefreshAll()
         {
+            // 名单重写后旧对象不再参与界面，清空防抖记录，避免引用滞留或误拦新卡片。
+            _lastCardClick.Clear();
             StudentGrid.ItemsSource = _data.Students;
             UpdateStats();
             EmptyHint.Visibility = _data.Students.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -82,11 +108,11 @@ namespace NameSelector
             // 防抖：同一张卡片 1 秒内不应再次改变状态，避免双击误操作
             DateTime now = DateTime.Now;
             DateTime last;
-            if (_lastCardClick.TryGetValue(student.Id, out last) && (now - last).TotalMilliseconds < 1000)
+            if (_lastCardClick.TryGetValue(student, out last) && (now - last).TotalMilliseconds < CardClickDebounceMs)
             {
                 return;
             }
-            _lastCardClick[student.Id] = now;
+            _lastCardClick[student] = now;
 
             if (student.IsCalled)
             {
@@ -103,7 +129,7 @@ namespace NameSelector
             }
 
             UpdateStats();
-            DataService.Save(_data);
+            SaveData();
 
             // 检查是否所有人都已点完
             int uncalled = _data.Students.Count(s => !s.IsCalled);
@@ -142,10 +168,7 @@ namespace NameSelector
             _data.NextOrder = 1;
 
             UpdateStats();
-            DataService.Save(_data);
-
-            // 重置随机实例，避免重置后连续抽中同一人
-            _random = new Random();
+            SaveData();
         }
 
         // ---------- 随机选人 ----------
@@ -194,7 +217,19 @@ namespace NameSelector
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            DataService.Save(_data);
+            SaveData();
+        }
+
+        private void SaveData()
+        {
+            try
+            {
+                DataService.Save(_data);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, Prompt.SaveFailure(ex), "点名分组工具", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

@@ -6,6 +6,7 @@
         Height="520" Width="560"
         MinHeight="380" MinWidth="420"
         WindowStartupLocation="CenterOwner"
+        FocusManager.FocusedElement="{Binding ElementName=NamesBox}"
         FontFamily="Microsoft YaHei"
         Background="#F5F6F7">
     <Grid Margin="16">

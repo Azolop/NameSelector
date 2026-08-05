@@ -104,18 +104,35 @@ namespace NameSelector.Converters
 
             timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromMilliseconds(40);
+
+            // 窗口关闭时主动停止并清理，避免静态字典/事件在窗口关闭瞬间还持有窗口引用。
+            EventHandler closedHandler = null;
+            closedHandler = (s, e) => CleanupTimer(window, timer, closedHandler);
+
             timer.Tick += (s, e) =>
             {
                 timer.Stop();
-                _trailingTimers.Remove(window);
+                window.Closed -= closedHandler;
+                CleanupTimer(window, timer, null);
                 ApplyNow(window, designWidth, designHeight);
             };
+            window.Closed += closedHandler;
             _trailingTimers[window] = timer;
             timer.Start();
         }
 
-        // 每个窗口最多一个待执行的尾随计时器；窗口关闭后计时器触发时会因 IsLoaded=false 直接退出并自我清理。
+        // 每个窗口最多一个待执行的尾随计时器；窗口关闭或计时器触发时都会主动清理。
         private static readonly Dictionary<Window, DispatcherTimer> _trailingTimers = new Dictionary<Window, DispatcherTimer>();
+
+        private static void CleanupTimer(Window window, DispatcherTimer timer, EventHandler closedHandler)
+        {
+            timer.Stop();
+            _trailingTimers.Remove(window);
+            if (closedHandler != null)
+            {
+                window.Closed -= closedHandler;
+            }
+        }
 
         private static void ApplyTo(DependencyObject current, double scale)
         {

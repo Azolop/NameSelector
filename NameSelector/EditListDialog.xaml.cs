@@ -54,14 +54,21 @@ namespace NameSelector
             }
             _data.NextOrder = 1;
 
-            if (DataService.Save(_data))
+            try
             {
-                Saved = true;
-                System.Media.SystemSounds.Asterisk.Play();
-                MessageBox.Show(this, "名单已更新", "修改名单", MessageBoxButton.OK, MessageBoxImage.Information);
-                Close();
+                DataService.Save(_data);
             }
-            // 保存失败时 DataService 已弹错误框，此处保持窗口打开以便重试，且不刷新主窗口。
+            catch (Exception ex)
+            {
+                // 保存失败时保持窗口打开以便重试，且不刷新主窗口。
+                MessageBox.Show(this, Prompt.SaveFailure(ex), "修改名单", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            Saved = true;
+            System.Media.SystemSounds.Asterisk.Play();
+            MessageBox.Show(this, "名单已更新", "修改名单", MessageBoxButton.OK, MessageBoxImage.Information);
+            Close();
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)

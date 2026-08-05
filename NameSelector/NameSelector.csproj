@@ -83,10 +83,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Converters\StatusTextConverter.cs" />
+    <Compile Include="Converters\OrderOnlyConverter.cs" />
     <Compile Include="Converters\Scale.cs" />
     <Compile Include="Models\AppData.cs" />
     <Compile Include="Models\Student.cs" />
     <Compile Include="Services\DataService.cs" />
+    <Compile Include="Prompts.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
