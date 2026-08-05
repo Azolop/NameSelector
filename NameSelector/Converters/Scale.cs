@@ -73,6 +73,15 @@ namespace NameSelector.Converters
             // 清理已关闭窗口的残留条目，避免字典强引用泄漏窗口对象及其视觉树。
             PruneClosedWindows();
 
+            // 尺寸未稳定（启动首帧、高 DPI 缩放协商中、最小化等）时先不套用字号，
+            // 安排稍后重试；否则会把字号按瞬时极小尺寸压到最小值，等窗口定下真实尺寸后
+            // 再跳变回正确值，表现为“字体先小后大”。
+            if (!HasUsableSize(window))
+            {
+                ScheduleTrailing(window, designWidth, designHeight);
+                return;
+            }
+
             DateTime now = DateTime.Now;
             DateTime last;
             if (!_lastApplyTime.TryGetValue(window, out last) ||
@@ -86,6 +95,22 @@ namespace NameSelector.Converters
 
             // 40ms 内再次触发：安排一次尾随应用。
             ScheduleTrailing(window, designWidth, designHeight);
+        }
+
+        /// <summary>
+        /// 判断窗口是否已有可用尺寸。三个窗口的最小宽高（900×560、420×380、660×400）
+        /// 都远大于该阈值，因此低于阈值只可能是尚未就绪的瞬时尺寸。
+        /// </summary>
+        private static bool HasUsableSize(Window window)
+        {
+            double width = window.ActualWidth;
+            double height = window.ActualHeight;
+            if (width <= 0 || height <= 0)
+            {
+                width = window.Width;
+                height = window.Height;
+            }
+            return width >= 300 && height >= 200;
         }
 
         /// <summary>
