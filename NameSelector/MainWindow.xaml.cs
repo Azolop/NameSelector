@@ -23,8 +23,9 @@ namespace NameSelector
             InitializeComponent();
             _data = DataService.Load();
             RefreshAll();
-            // 比例式自适应：每次布局更新按窗口尺寸重新套用缩放
-            LayoutUpdated += (s, e) => Converters.Scale.Apply(this, 1180, 720);
+            // 比例式自适应：加载后立即应用一次；布局变化时防抖重新应用
+            Loaded += (s, e) => Converters.Scale.ApplyNow(this, 1180, 720);
+            LayoutUpdated += (s, e) => Converters.Scale.RequestApply(this, 1180, 720);
 
             // 按工作区钳制初始尺寸，避免 1024×768 等小屏上窗口超出屏幕
             Rect workArea = SystemParameters.WorkArea;

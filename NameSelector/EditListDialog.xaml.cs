@@ -22,8 +22,9 @@ namespace NameSelector
             InitializeComponent();
             _data = data;
             NamesBox.Text = string.Join("\r\n", data.Students.Select(s => s.Name).ToArray());
-            // 比例式自适应：每次布局更新按窗口尺寸重新套用缩放
-            LayoutUpdated += (s, e) => Converters.Scale.Apply(this, 560, 520);
+            // 比例式自适应：加载后立即应用一次；布局变化时防抖重新应用
+            Loaded += (s, e) => Converters.Scale.ApplyNow(this, 560, 520);
+            LayoutUpdated += (s, e) => Converters.Scale.RequestApply(this, 560, 520);
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)

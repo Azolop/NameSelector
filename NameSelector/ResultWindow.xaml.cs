@@ -13,8 +13,9 @@ namespace NameSelector
         {
             InitializeComponent();
             ResultNameText.Text = studentName;
-            // 比例式自适应：每次布局更新按窗口尺寸重新套用缩放
-            LayoutUpdated += (s, e) => Converters.Scale.Apply(this, 660, 400);
+            // 比例式自适应：加载后立即应用一次；布局变化时防抖重新应用
+            Loaded += (s, e) => Converters.Scale.ApplyNow(this, 660, 400);
+            LayoutUpdated += (s, e) => Converters.Scale.RequestApply(this, 660, 400);
         }
 
         private void Window_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
