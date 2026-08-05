@@ -39,6 +39,13 @@ namespace NameSelector
                     "点名分组工具",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
+
+                // 启动期（主窗口尚未创建）失败时继续运行没有意义，直接退出。
+                if (Application.Current.MainWindow == null)
+                {
+                    Shutdown();
+                    return;
+                }
                 args.Handled = true;
             };
 

@@ -70,6 +70,9 @@ namespace NameSelector.Converters
                 return;
             }
 
+            // 清理已关闭窗口的残留条目，避免字典强引用泄漏窗口对象及其视觉树。
+            PruneClosedWindows();
+
             DateTime now = DateTime.Now;
             DateTime last;
             if (!_lastApplyTime.TryGetValue(window, out last) ||
@@ -83,6 +86,40 @@ namespace NameSelector.Converters
 
             // 40ms 内再次触发：安排一次尾随应用。
             ScheduleTrailing(window, designWidth, designHeight);
+        }
+
+        /// <summary>
+        /// 清理已关闭窗口在字典中的残留条目（键为强引用，不清理会阻止窗口对象回收）。
+        /// 条目数很少，每次 Apply 顺带扫描一次的开销可忽略。
+        /// </summary>
+        private static void PruneClosedWindows()
+        {
+            var closedKeys = new List<Window>();
+            foreach (var pair in _lastApplyTime)
+            {
+                if (!pair.Key.IsLoaded)
+                {
+                    closedKeys.Add(pair.Key);
+                }
+            }
+            foreach (var key in closedKeys)
+            {
+                _lastApplyTime.Remove(key);
+            }
+
+            var closedTimers = new List<Window>();
+            foreach (var pair in _trailingTimers)
+            {
+                if (!pair.Key.IsLoaded)
+                {
+                    closedTimers.Add(pair.Key);
+                }
+            }
+            foreach (var key in closedTimers)
+            {
+                _trailingTimers[key].Stop();
+                _trailingTimers.Remove(key);
+            }
         }
 
         private static void ApplyNow(Window window, double designWidth, double designHeight)
