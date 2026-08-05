@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace NameSelector.Converters
 {
@@ -50,22 +52,42 @@ namespace NameSelector.Converters
             return (string)element.GetValue(HeightProperty);
         }
 
-        private static DateTime _lastApplyTime = DateTime.MinValue;
+        // 每个窗口最近一次应用缩放的时间，以及待执行的尾随计时器。
+        // 节流 + 尾随：拖拽期间不逐帧全树缩放，但保证最终尺寸一定会被应用，
+        // 避免最后一次 LayoutUpdated 被节流吞掉导致字号停留在旧值。
+        private static readonly Dictionary<Window, DateTime> _lastApplyTime = new Dictionary<Window, DateTime>();
+        private static readonly Dictionary<Window, DispatcherTimer> _trailingTimers = new Dictionary<Window, DispatcherTimer>();
 
         /// <summary>
         /// 对窗口整棵视觉树应用缩放。designWidth/designHeight 是该窗口的基准尺寸。
-        /// LayoutUpdated 每帧触发，这里按 40ms 节流，避免拖拽窗口时反复整树缩放导致卡顿。
+        /// LayoutUpdated 每帧触发，这里按 40ms 节流避免拖拽时反复整树缩放；
+        /// 节流窗口内的再次触发会安排一次尾随应用，确保窗口尺寸稳定后仍会执行最后一次。
         /// </summary>
         public static void Apply(Window window, double designWidth, double designHeight)
         {
-            DateTime now = DateTime.Now;
-            if ((now - _lastApplyTime).TotalMilliseconds < 40)
+            if (window == null)
             {
                 return;
             }
-            _lastApplyTime = now;
 
-            if (window == null)
+            DateTime now = DateTime.Now;
+            DateTime last;
+            if (!_lastApplyTime.TryGetValue(window, out last) ||
+                (now - last).TotalMilliseconds >= 40)
+            {
+                _lastApplyTime[window] = now;
+                CancelTrailing(window);
+                ApplyNow(window, designWidth, designHeight);
+                return;
+            }
+
+            // 40ms 内再次触发：安排一次尾随应用。
+            ScheduleTrailing(window, designWidth, designHeight);
+        }
+
+        private static void ApplyNow(Window window, double designWidth, double designHeight)
+        {
+            if (!window.IsLoaded)
             {
                 return;
             }
@@ -84,6 +106,41 @@ namespace NameSelector.Converters
 
             double scale = Math.Min(width / designWidth, height / designHeight);
             ApplyTo(window, scale);
+        }
+
+        private static void ScheduleTrailing(Window window, double designWidth, double designHeight)
+        {
+            DispatcherTimer timer;
+            if (_trailingTimers.TryGetValue(window, out timer))
+            {
+                return;
+            }
+
+            timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(40);
+            timer.Tick += (s, e) =>
+            {
+                timer.Stop();
+                _trailingTimers.Remove(window);
+                if (!window.IsLoaded)
+                {
+                    return;
+                }
+                _lastApplyTime.Remove(window); // 强制重新应用一次，套用最终尺寸
+                Apply(window, designWidth, designHeight);
+            };
+            _trailingTimers[window] = timer;
+            timer.Start();
+        }
+
+        private static void CancelTrailing(Window window)
+        {
+            DispatcherTimer timer;
+            if (_trailingTimers.TryGetValue(window, out timer))
+            {
+                timer.Stop();
+                _trailingTimers.Remove(window);
+            }
         }
 
         private static void ApplyTo(DependencyObject current, double scale)
