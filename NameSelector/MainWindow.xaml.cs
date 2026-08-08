@@ -32,6 +32,8 @@ namespace NameSelector
             // 比例式自适应：加载后立即应用一次；布局变化时防抖重新应用
             Loaded += (s, e) => Converters.Scale.ApplyNow(this, DesignWidth, DesignHeight);
             LayoutUpdated += (s, e) => Converters.Scale.RequestApply(this, DesignWidth, DesignHeight);
+            // 启动后检查上一轮点名是否已结束
+            Loaded += (s, e) => CheckUnfinishedRollCall();
 
             // 按工作区钳制初始尺寸，避免 1024×768 等小屏上窗口超出屏幕
             ClampToWorkArea();
@@ -160,6 +162,14 @@ namespace NameSelector
                 return;
             }
 
+            EndRollCallCore();
+        }
+
+        /// <summary>
+        /// 结束本轮点名的核心逻辑：清除全部点名记录并把次序重置为初始状态。
+        /// </summary>
+        private void EndRollCallCore()
+        {
             foreach (var student in _data.Students)
             {
                 student.IsCalled = false;
@@ -169,6 +179,27 @@ namespace NameSelector
 
             UpdateStats();
             SaveData();
+        }
+
+        // ---------- 启动时未结束检测 ----------
+
+        /// <summary>
+        /// 当前点名次序（NextOrder）初始为 1；若不是 1，说明上一轮点名尚未结束，
+        /// 询问用户是否开启新的点名。
+        /// </summary>
+        private void CheckUnfinishedRollCall()
+        {
+            if (_data.NextOrder == 1)
+            {
+                return;
+            }
+
+            var dialog = new UnfinishedRollCallDialog { Owner = this };
+            dialog.ShowDialog();
+            if (dialog.StartNew)
+            {
+                EndRollCallCore();
+            }
         }
 
         // ---------- 随机选人 ----------
