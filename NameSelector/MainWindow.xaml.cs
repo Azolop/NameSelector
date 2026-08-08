@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using NameSelector.Models;
 using NameSelector.Services;
+using NameSelector.Dialogs;
 
 namespace NameSelector
 {
@@ -47,7 +48,7 @@ namespace NameSelector
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, Prompt.LoadFailure(ex), "点名分组工具", MessageBoxButton.OK, MessageBoxImage.Warning);
+                DialogService.Show(this, Prompt.LoadFailure(ex), "点名分组工具", NoticeKind.Warning);
                 return DataService.CreateDefault();
             }
         }
@@ -137,7 +138,7 @@ namespace NameSelector
             int uncalled = _data.Students.Count(s => !s.IsCalled);
             if (uncalled == 0 && _data.Students.Count > 0)
             {
-                MessageBox.Show(this, "所有同学都已点名完毕！", "点名完成", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogService.Show(this, "所有同学都已点名完毕！", "点名完成", NoticeKind.Success);
             }
         }
 
@@ -147,17 +148,17 @@ namespace NameSelector
         {
             if (_data.Students.Count == 0)
             {
-                MessageBox.Show(this, "名单为空，没有可结束的点名。", "结束本轮点名", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogService.Show(this, "名单为空，没有可结束的点名。", "结束本轮点名", NoticeKind.Warning);
                 return;
             }
 
-            MessageBoxResult result = MessageBox.Show(
+            bool confirmed = DialogService.Confirm(
                 this,
                 "确定要结束本轮点名吗？\n所有点名记录将被清除。",
                 "结束本轮点名",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-            if (result != MessageBoxResult.Yes)
+                "是",
+                "否");
+            if (!confirmed)
             {
                 return;
             }
@@ -194,9 +195,13 @@ namespace NameSelector
                 return;
             }
 
-            var dialog = new UnfinishedRollCallDialog { Owner = this };
-            dialog.ShowDialog();
-            if (dialog.StartNew)
+            bool startNew = DialogService.Confirm(
+                this,
+                "上次点名没有结束。\n需要重新开始新一轮点名吗？",
+                "开始新一轮点名",
+                "开启新的点名",
+                "维持当前状态");
+            if (startNew)
             {
                 EndRollCallCore();
             }
@@ -223,7 +228,7 @@ namespace NameSelector
         {
             if (pool.Count == 0)
             {
-                MessageBox.Show(this, emptyMessage, "随机选人", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogService.Show(this, emptyMessage, "随机选人", NoticeKind.Information);
                 return;
             }
 
@@ -259,7 +264,7 @@ namespace NameSelector
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, Prompt.SaveFailure(ex), "点名分组工具", MessageBoxButton.OK, MessageBoxImage.Error);
+                DialogService.Show(this, Prompt.SaveFailure(ex), "点名分组工具", NoticeKind.Error);
             }
         }
     }

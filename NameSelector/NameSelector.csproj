@@ -62,7 +62,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UnfinishedRollCallDialog.xaml">
+    <Page Include="Dialogs\NoticeDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -82,8 +82,11 @@
       <DependentUpon>EditListDialog.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="UnfinishedRollCallDialog.xaml.cs">
-      <DependentUpon>UnfinishedRollCallDialog.xaml</DependentUpon>
+    <Compile Include="Dialogs\NoticeDialog.xaml.cs">
+      <DependentUpon>Dialogs\NoticeDialog.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Dialogs\DialogService.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ResultWindow.xaml.cs">

@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Windows;
+using NameSelector.Dialogs;
 
 namespace NameSelector
 {
@@ -21,11 +22,11 @@ namespace NameSelector
             _singleInstanceMutex = new Mutex(true, "{6528F575-B344-42BE-B3B0-4E3879E65814}", out createdNew);
             if (!createdNew)
             {
-                MessageBox.Show(
+                DialogService.Show(
+                    null,
                     "点名分组工具已经在运行中，请勿重复打开。",
                     "点名分组工具",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                    NoticeKind.Information);
                 Shutdown();
                 return;
             }
@@ -33,12 +34,12 @@ namespace NameSelector
             // 全局异常兜底：UI 线程异常弹窗提示并继续，避免闪退丢数据。
             DispatcherUnhandledException += (s, args) =>
             {
-                MessageBox.Show(
+                DialogService.Show(
+                    null,
                     "程序发生未处理异常：\n\n" + args.Exception.Message +
                     "\n\n数据已在每次操作时保存到 namelist.json，若界面出现异常请重启程序。",
                     "点名分组工具",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    NoticeKind.Error);
 
                 // 启动期（主窗口尚未创建）失败时继续运行没有意义，直接退出。
                 if (Application.Current.MainWindow == null)
@@ -53,12 +54,12 @@ namespace NameSelector
             AppDomain.CurrentDomain.UnhandledException += (s, args) =>
             {
                 var ex = args.ExceptionObject as Exception;
-                MessageBox.Show(
+                DialogService.Show(
+                    null,
                     "程序发生致命错误：\n\n" + (ex != null ? ex.Message : args.ExceptionObject.ToString()) +
                     "\n\n程序即将退出，最近的数据已保存在 namelist.json。",
                     "点名分组工具",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    NoticeKind.Error);
             };
         }
 
