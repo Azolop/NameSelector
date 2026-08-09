@@ -167,18 +167,36 @@ namespace NameSelector
             _data.SemesterStart = startDate.ToString("yyyy-MM-dd");
             SaveAppData();
 
+            // 周次范围：1~24 自由选择区间
+            var rangeDialog = new InputDialog(
+                "选择周次范围",
+                "请输入要生成的周次范围（1~24），如 1-24 或 5-10。",
+                "1-24") { Owner = this };
+            if (rangeDialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            int startWeek;
+            int endWeek;
+            if (!TryParseWeekRange(rangeDialog.InputText, WeeklyRecordService.MaxWeeks, out startWeek, out endWeek))
+            {
+                DialogService.Show(this, "周次范围格式不正确，请输入 1~24 之间的区间，如 1-24。", "周次情况记录表", NoticeKind.Warning);
+                return;
+            }
+
             if (_data.Students.Count == 0)
             {
                 DialogService.Show(this, "名单为空，请先回到主窗口点击「修改名单」添加学生。", "周次情况记录表", NoticeKind.Warning);
                 return;
             }
 
-            // 同一周次只能有一张表：重新生成前确认覆盖已存在的 1~24 周。
+            // 同一周次只能有一张表：区间内有已存在的周次时确认覆盖。
             var allTables = WeeklyRecordService.LoadAll();
             var existingWeeks = new List<int>();
             foreach (var table in allTables)
             {
-                if (table.WeekNumber >= 1 && table.WeekNumber <= WeeklyRecordService.MaxWeeks)
+                if (table.WeekNumber >= startWeek && table.WeekNumber <= endWeek)
                 {
                     existingWeeks.Add(table.WeekNumber);
                 }
@@ -201,7 +219,7 @@ namespace NameSelector
 
             try
             {
-                for (int week = 1; week <= WeeklyRecordService.MaxWeeks; week++)
+                for (int week = startWeek; week <= endWeek; week++)
                 {
                     WeeklyRecordTable table = WeeklyRecordService.CreateFromStudents(_data, week, _data.SemesterStart);
                     WeeklyRecordService.Save(table);
@@ -227,6 +245,24 @@ namespace NameSelector
                 currentWeek = WeeklyRecordService.MaxWeeks;
             }
             SelectWeek(currentWeek);
+        }
+
+        /// <summary>解析周次范围文本，如「1-24」「5-10」，支持半角 / 全角短横线。</summary>
+        private static bool TryParseWeekRange(string text, int maxWeeks, out int startWeek, out int endWeek)
+        {
+            startWeek = 0;
+            endWeek = 0;
+            string value = (text ?? "").Trim().Replace('～', '-').Replace('~', '-');
+            string[] parts = value.Split('-');
+            if (parts.Length != 2)
+            {
+                return false;
+            }
+            if (!int.TryParse(parts[0].Trim(), out startWeek) || !int.TryParse(parts[1].Trim(), out endWeek))
+            {
+                return false;
+            }
+            return startWeek >= 1 && endWeek <= maxWeeks && startWeek <= endWeek;
         }
 
         // ---------- 保存 ----------
@@ -427,8 +463,7 @@ namespace NameSelector
 
         private void MakeStudentRow(WeeklyRecordRow row, int gridRow, int colCount, Grid grid)
         {
-            // 成员列：组长 / 组员 + 姓名
-            string roleText = row.IsLeader ? "组长：" : "组员：";
+            // 成员列：只显示姓名，组长行用底色与加粗区分
             string background = row.IsLeader ? "#FCF3CF" : "#F8F9F9";
             var nameBorder = new Border
             {
@@ -439,7 +474,7 @@ namespace NameSelector
             };
             var nameText = new TextBlock
             {
-                Text = roleText + row.StudentName,
+                Text = row.StudentName,
                 VerticalAlignment = VerticalAlignment.Center,
                 TextWrapping = TextWrapping.Wrap,
                 FontWeight = row.IsLeader ? FontWeights.Bold : FontWeights.Normal,
