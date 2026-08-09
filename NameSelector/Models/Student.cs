@@ -16,10 +16,10 @@ namespace NameSelector.Models
         /// <summary>姓名。</summary>
         public string Name { get; set; }
 
-        /// <summary>小组名称，如「第一组」；未分组的学生为「未分组」。</summary>
-        public string Group { get; set; }
+        /// <summary>小组号（数字），未分组为 0。</summary>
+        public int GroupNumber { get; set; }
 
-        /// <summary>是否组长。名单编辑时每组第一个人自动成为组长。</summary>
+        /// <summary>是否组长。每组最多一名组长；单人群组自动成为组长。</summary>
         public bool IsLeader { get; set; }
 
         /// <summary>是否已被点过名。</summary>

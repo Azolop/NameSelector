@@ -69,7 +69,8 @@ namespace NameSelector
 
         private void RefreshTableList()
         {
-            _tables = WeeklyRecordService.LoadAll();
+            // 下拉框只展示 1~24 周
+            _tables = WeeklyRecordService.LoadAll().FindAll(t => t.WeekNumber >= 1 && t.WeekNumber <= WeeklyRecordService.MaxWeeks);
 
             _loading = true;
             WeekCombo.ItemsSource = _tables;
@@ -148,7 +149,7 @@ namespace NameSelector
             string existing = string.IsNullOrEmpty(_data.SemesterStart) ? "" : _data.SemesterStart;
             var dateDialog = new InputDialog(
                 "设置开学日期",
-                "开学日期所在周为第 1 周。\n格式：yyyy-MM-dd，例如 2026-02-16。",
+                "开学日期所在周的周一为第 1 周起点。\n格式：yyyy-MM-dd，例如 2026-09-01。",
                 existing) { Owner = this };
             if (dateDialog.ShowDialog() != true)
             {
@@ -166,40 +167,45 @@ namespace NameSelector
             _data.SemesterStart = startDate.ToString("yyyy-MM-dd");
             SaveAppData();
 
-            int currentWeek = Math.Max(1, ((DateTime.Today - startDate).Days / 7) + 1);
-            var weekDialog = new InputDialog(
-                "选择周次",
-                "请输入要生成的周次（第 1 周为开学日期所在周）。\n本机日期：" +
-                DateTime.Today.ToString("yyyy-MM-dd") + "，默认第 " + currentWeek + " 周。",
-                currentWeek.ToString()) { Owner = this };
-            if (weekDialog.ShowDialog() != true)
-            {
-                return;
-            }
-
-            int week;
-            if (!int.TryParse((weekDialog.InputText ?? "").Trim(), out week) || week < 1)
-            {
-                DialogService.Show(this, "周次必须是大于 0 的整数。", "周次情况记录表", NoticeKind.Warning);
-                return;
-            }
-
             if (_data.Students.Count == 0)
             {
                 DialogService.Show(this, "名单为空，请先回到主窗口点击「修改名单」添加学生。", "周次情况记录表", NoticeKind.Warning);
                 return;
             }
 
-            if (WeeklyRecordService.Exists(week))
+            // 同一周次只能有一张表：重新生成前确认覆盖已存在的 1~24 周。
+            var allTables = WeeklyRecordService.LoadAll();
+            var existingWeeks = new List<int>();
+            foreach (var table in allTables)
             {
-                DialogService.Show(this, "第 " + week + " 周的表已经存在。\n同一周次只能有一张表，请通过下拉框选择后打开。", "周次情况记录表", NoticeKind.Warning);
-                return;
+                if (table.WeekNumber >= 1 && table.WeekNumber <= WeeklyRecordService.MaxWeeks)
+                {
+                    existingWeeks.Add(table.WeekNumber);
+                }
+            }
+            existingWeeks.Sort();
+            if (existingWeeks.Count > 0)
+            {
+                string weeksText = string.Join("、", existingWeeks.ConvertAll(w => w.ToString()).ToArray());
+                bool ok = DialogService.Confirm(
+                    this,
+                    "已存在 " + existingWeeks.Count + " 张周次表（第 " + weeksText + " 周）。\n重新生成将覆盖这些表的内容，是否继续？",
+                    "周次情况记录表",
+                    "继续生成",
+                    "取消");
+                if (!ok)
+                {
+                    return;
+                }
             }
 
             try
             {
-                WeeklyRecordTable table = WeeklyRecordService.CreateFromStudents(_data, week, _data.SemesterStart);
-                WeeklyRecordService.Save(table);
+                for (int week = 1; week <= WeeklyRecordService.MaxWeeks; week++)
+                {
+                    WeeklyRecordTable table = WeeklyRecordService.CreateFromStudents(_data, week, _data.SemesterStart);
+                    WeeklyRecordService.Save(table);
+                }
             }
             catch (Exception ex)
             {
@@ -208,7 +214,19 @@ namespace NameSelector
             }
 
             RefreshTableList();
-            SelectWeek(week);
+
+            // 默认选中本机日期所在周
+            DateTime week1Start = WeeklyRecordService.GetWeek1Start(_data.SemesterStart);
+            int currentWeek = ((DateTime.Today - week1Start).Days / 7) + 1;
+            if (currentWeek < 1)
+            {
+                currentWeek = 1;
+            }
+            if (currentWeek > WeeklyRecordService.MaxWeeks)
+            {
+                currentWeek = WeeklyRecordService.MaxWeeks;
+            }
+            SelectWeek(currentWeek);
         }
 
         // ---------- 保存 ----------
@@ -273,14 +291,16 @@ namespace NameSelector
             _currentTable = table;
             _dirty = false;
 
-            int colCount = WeeklyColumns.All.Length + 1;
+            int colCount = WeeklyColumns.All.Length + 2;
             var grid = new Grid
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Top
             };
 
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(120) });
+            // 前两列：组号、成员；其余为数据列
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(96) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
             for (int d = 0; d < WeeklyColumns.All.Length; d++)
             {
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -290,9 +310,10 @@ namespace NameSelector
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            // 表头第一行：姓名（跨两行）+ 大栏目（背默 / 课堂 / 作业 / 总结）
-            grid.Children.Add(MakeHeaderCell("姓名", 0, 0, 2, 1, "#2C3E50"));
-            int col = 1;
+            // 表头第一行：组号、成员（各跨两行）+ 大栏目（背默 / 课堂 / 作业 / 总结）
+            grid.Children.Add(MakeHeaderCell("组号", 0, 0, 2, 1, "#2C3E50"));
+            grid.Children.Add(MakeHeaderCell("成员", 0, 1, 2, 1, "#2C3E50"));
+            int col = 2;
             int i = 0;
             while (i < WeeklyColumns.All.Length)
             {
@@ -312,23 +333,32 @@ namespace NameSelector
             // 表头第二行：小列名（背默①、课堂①……总结）
             for (int k = 0; k < WeeklyColumns.All.Length; k++)
             {
-                grid.Children.Add(MakeHeaderCell(WeeklyColumns.All[k].Header, 1, k + 1, 1, 1, "#566573"));
+                grid.Children.Add(MakeHeaderCell(WeeklyColumns.All[k].Header, 1, k + 2, 1, 1, "#566573"));
             }
 
-            // 数据行：小组行 + 组长 / 组员行
+            // 数据行：每个小组一行组号（跨组员行）+ 每名成员一行
             int gridRow = 2;
-            for (int r = 0; r < table.Rows.Count; r++)
+            int r = 0;
+            while (r < table.Rows.Count)
             {
-                WeeklyRecordRow row = table.Rows[r];
-                if (r == 0 || row.Group != table.Rows[r - 1].Group)
+                WeeklyRecordRow first = table.Rows[r];
+                int groupCount = 1;
+                while (r + groupCount < table.Rows.Count && table.Rows[r + groupCount].GroupNumber == first.GroupNumber)
+                {
+                    groupCount++;
+                }
+
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                grid.Children.Add(MakeGroupNumberCell(first.GroupNumber, gridRow, groupCount));
+
+                for (int m = 0; m < groupCount; m++)
                 {
                     grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                    grid.Children.Add(MakeGroupRow(row.Group, gridRow, colCount));
-                    gridRow++;
+                    MakeStudentRow(table.Rows[r + m], gridRow + m, colCount, grid);
                 }
-                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                MakeStudentRow(row, gridRow, colCount, grid);
-                gridRow++;
+
+                gridRow += groupCount;
+                r += groupCount;
             }
 
             TableHost.Content = grid;
@@ -368,33 +398,36 @@ namespace NameSelector
             return border;
         }
 
-        private static Border MakeGroupRow(string group, int gridRow, int colCount)
+        private static Border MakeGroupNumberCell(int groupNumber, int gridRow, int rowSpan)
         {
             var border = new Border
             {
                 Background = new SolidColorBrush(Color.FromRgb(0xD6, 0xEA, 0xF8)),
                 BorderBrush = new SolidColorBrush(Color.FromRgb(0xBD, 0xC3, 0xC7)),
                 BorderThickness = new Thickness(0.5),
-                Padding = new Thickness(8, 5, 8, 5)
+                Padding = new Thickness(6, 4, 6, 4)
             };
             var textBlock = new TextBlock
             {
-                Text = group,
+                Text = groupNumber > 0 ? "第" + groupNumber + "组" : "未分组",
                 FontWeight = FontWeights.Bold,
-                Foreground = new SolidColorBrush(Color.FromRgb(0x1A, 0x52, 0x76))
+                Foreground = new SolidColorBrush(Color.FromRgb(0x1A, 0x52, 0x76)),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextWrapping = TextWrapping.Wrap
             };
             Converters.Scale.SetFontSize(textBlock, "22,18");
             border.Child = textBlock;
 
             Grid.SetRow(border, gridRow);
             Grid.SetColumn(border, 0);
-            Grid.SetColumnSpan(border, colCount);
+            Grid.SetRowSpan(border, rowSpan);
             return border;
         }
 
         private void MakeStudentRow(WeeklyRecordRow row, int gridRow, int colCount, Grid grid)
         {
-            // 姓名列：组长 / 组员 + 姓名
+            // 成员列：组长 / 组员 + 姓名
             string roleText = row.IsLeader ? "组长：" : "组员：";
             string background = row.IsLeader ? "#FCF3CF" : "#F8F9F9";
             var nameBorder = new Border
@@ -416,7 +449,7 @@ namespace NameSelector
             Converters.Scale.SetHeight(nameBorder, "42,34");
             nameBorder.Child = nameText;
             Grid.SetRow(nameBorder, gridRow);
-            Grid.SetColumn(nameBorder, 0);
+            Grid.SetColumn(nameBorder, 1);
             grid.Children.Add(nameBorder);
 
             // 数据列：每个交叉单元格一个可编辑文本框
@@ -424,7 +457,7 @@ namespace NameSelector
             {
                 TextBox box = MakeCellTextBox(row, WeeklyColumns.All[c].Key);
                 Grid.SetRow(box, gridRow);
-                Grid.SetColumn(box, c + 1);
+                Grid.SetColumn(box, c + 2);
                 grid.Children.Add(box);
             }
         }

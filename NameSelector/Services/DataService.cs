@@ -94,9 +94,9 @@ namespace NameSelector.Services
                 {
                     student.Order = 0;
                 }
-                if (student.Group == null)
+                if (student.GroupNumber < 0)
                 {
-                    student.Group = "未分组";
+                    student.GroupNumber = 0;
                 }
             }
 

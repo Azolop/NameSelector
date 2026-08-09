@@ -49,8 +49,8 @@ namespace NameSelector.Models
             Cells = new Dictionary<string, string>();
         }
 
-        /// <summary>小组名称。</summary>
-        public string Group { get; set; }
+        /// <summary>小组号（数字），未分组为 0。</summary>
+        public int GroupNumber { get; set; }
 
         /// <summary>是否组长。</summary>
         public bool IsLeader { get; set; }

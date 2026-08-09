@@ -17,6 +17,9 @@ namespace NameSelector.Services
     {
         private const string FolderName = "weekly";
 
+        /// <summary>一次生成的周次数：第 1 周到第 24 周。</summary>
+        public const int MaxWeeks = 24;
+
         private static readonly JavaScriptSerializer Serializer = new JavaScriptSerializer();
 
         public static string FolderPath
@@ -95,17 +98,12 @@ namespace NameSelector.Services
 
         /// <summary>
         /// 按当前名单生成某周的空表（仅含行结构与空单元格，不落盘）。
-        /// 组内组长行在前，组员按名单顺序。
+        /// 第 1 周起点为开学日期所在周的周一；组按组号升序，组内组长行在前、组员按名单顺序。
         /// </summary>
         public static WeeklyRecordTable CreateFromStudents(AppData data, int week, string semesterStart)
         {
-            DateTime start;
-            if (!DateTime.TryParseExact(semesterStart, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out start))
-            {
-                start = DateTime.Today;
-            }
-
-            DateTime weekStart = start.AddDays((week - 1) * 7);
+            DateTime week1Start = GetWeek1Start(semesterStart);
+            DateTime weekStart = week1Start.AddDays((week - 1) * 7);
             DateTime weekEnd = weekStart.AddDays(6);
 
             var table = new WeeklyRecordTable
@@ -117,55 +115,72 @@ namespace NameSelector.Services
                 GeneratedAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
             };
 
-            // 小组按名单首次出现顺序排列；组内组长在前，其余按名单顺序。
-            var groups = new List<string>();
-            var groupOrder = new Dictionary<string, int>();
+            // 组号升序分组；组内组长在前，其余按名单顺序。
+            var grouped = new Dictionary<int, List<Student>>();
+            var groupNumbers = new List<int>();
             foreach (var student in data.Students)
             {
-                string group = GroupOf(student);
-                if (!groupOrder.ContainsKey(group))
+                int group = student.GroupNumber < 0 ? 0 : student.GroupNumber;
+                List<Student> members;
+                if (!grouped.TryGetValue(group, out members))
                 {
-                    groupOrder[group] = groups.Count;
-                    groups.Add(group);
+                    members = new List<Student>();
+                    grouped[group] = members;
+                    groupNumbers.Add(group);
                 }
+                members.Add(student);
             }
+            groupNumbers.Sort();
 
-            var sortedStudents = new List<Student>(data.Students);
-            sortedStudents.Sort((a, b) =>
+            foreach (int group in groupNumbers)
             {
-                int cmp = groupOrder[GroupOf(a)].CompareTo(groupOrder[GroupOf(b)]);
-                if (cmp != 0)
+                List<Student> members = grouped[group];
+                members.Sort((a, b) =>
                 {
-                    return cmp;
-                }
-                if (a.IsLeader != b.IsLeader)
-                {
-                    return a.IsLeader ? -1 : 1;
-                }
-                return a.Id.CompareTo(b.Id);
-            });
+                    if (a.IsLeader != b.IsLeader)
+                    {
+                        return a.IsLeader ? -1 : 1;
+                    }
+                    return a.Id.CompareTo(b.Id);
+                });
 
-            foreach (var student in sortedStudents)
-            {
-                var row = new WeeklyRecordRow
+                foreach (var student in members)
                 {
-                    Group = GroupOf(student),
-                    IsLeader = student.IsLeader,
-                    StudentId = student.Id,
-                    StudentName = student.Name
-                };
-                foreach (var column in WeeklyColumns.All)
-                {
-                    row.Cells[column.Key] = "";
+                    var row = new WeeklyRecordRow
+                    {
+                        GroupNumber = group,
+                        IsLeader = student.IsLeader,
+                        StudentId = student.Id,
+                        StudentName = student.Name
+                    };
+                    foreach (var column in WeeklyColumns.All)
+                    {
+                        row.Cells[column.Key] = "";
+                    }
+                    table.Rows.Add(row);
                 }
-                table.Rows.Add(row);
             }
             return table;
         }
 
-        private static string GroupOf(Student student)
+        /// <summary>
+        /// 开学日期所在周的周一，即第 1 周的起点。
+        /// 例如开学日期 9 月 1 日（周二），第 1 周从 8 月 31 日（周一）算起。
+        /// </summary>
+        public static DateTime GetWeek1Start(string semesterStart)
         {
-            return string.IsNullOrEmpty(student.Group) ? "未分组" : student.Group;
+            DateTime start;
+            if (!DateTime.TryParseExact(semesterStart, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out start))
+            {
+                start = DateTime.Today;
+            }
+            return MondayOf(start);
+        }
+
+        private static DateTime MondayOf(DateTime date)
+        {
+            int daysSinceMonday = ((int)date.DayOfWeek + 6) % 7;
+            return date.AddDays(-daysSinceMonday);
         }
     }
 }
