@@ -38,6 +38,7 @@
                           Grid.Column="1"
                           Margin="14,0"
                           VerticalAlignment="Center"
+                          DisplayMemberPath="DisplayName"
                           converters:Scale.FontSize="20,18"
                           SelectionChanged="WeekCombo_SelectionChanged" />
                 <Button x:Name="SaveButton"
