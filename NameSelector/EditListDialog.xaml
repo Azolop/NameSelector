@@ -18,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
-                   Text="每行一个名字。保存后名单将重新编号，所有点名状态会被重置。"
+                   Text="每行一个名字；也可用「组名:姓名」分组，组内第一个为组长。&#10;不带组名的行归入「未分组」。保存后名单重新编号，点名状态会被重置。"
                    converters:Scale.FontSize="18,18"
                    Foreground="#7F8C8D"
                    TextWrapping="Wrap"

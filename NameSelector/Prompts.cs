@@ -20,5 +20,12 @@ namespace NameSelector
             return "保存 namelist.json 失败，本次改动可能未保存。\n\n" + ex.Message +
                    "\n\n提示：请确认程序所在目录可写（不要放在 C:\\Program Files、桌面或教学机只读目录）。";
         }
+
+        /// <summary>保存周次表失败时的提示。</summary>
+        public static string WeeklySaveFailure(Exception ex)
+        {
+            return "保存周次表失败，本次改动可能未保存。\n\n" + ex.Message +
+                   "\n\n提示：请确认程序所在目录可写（不要放在 C:\\Program Files、桌面或教学机只读目录）。";
+        }
     }
 }

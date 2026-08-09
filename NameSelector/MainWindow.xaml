@@ -149,6 +149,7 @@
                 <RowDefinition Height="1*" />
                 <RowDefinition Height="1*" />
                 <RowDefinition Height="1*" />
+                <RowDefinition Height="1*" />
             </Grid.RowDefinitions>
 
             <Border Grid.Row="0" Style="{StaticResource StatCard}">
@@ -252,6 +253,14 @@
                     Background="#27AE60"
                     Click="EditList_Click">
                 <TextBlock Text="修改名单" TextWrapping="Wrap" TextAlignment="Center" />
+            </Button>
+
+            <Button Grid.Row="8"
+                    Margin="0,4"
+                    Style="{StaticResource SideButton}"
+                    Background="#16A085"
+                    Click="WeekRecord_Click">
+                <TextBlock Text="周次记录表" TextWrapping="Wrap" TextAlignment="Center" />
             </Button>
         </Grid>
 

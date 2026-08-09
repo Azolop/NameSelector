@@ -249,6 +249,14 @@ namespace NameSelector
             }
         }
 
+        // ---------- 周次情况记录表 ----------
+
+        private void WeekRecord_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new WeekRecordWindow(_data) { Owner = this };
+            window.ShowDialog();
+        }
+
         // ---------- 关闭窗口时兜底保存 ----------
 
         private void Window_Closing(object sender, CancelEventArgs e)

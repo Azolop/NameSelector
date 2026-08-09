@@ -64,6 +64,7 @@ namespace NameSelector.Services
                 });
             }
             data.NextOrder = 1;
+            data.SemesterStart = "";
             return data;
         }
 
@@ -92,6 +93,10 @@ namespace NameSelector.Services
                 if (student.Order < 0)
                 {
                     student.Order = 0;
+                }
+                if (student.Group == null)
+                {
+                    student.Group = "未分组";
                 }
             }
 

@@ -70,6 +70,18 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Dialogs\InputDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="WeekRecordWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="EntryWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -89,8 +101,20 @@
     <Compile Include="Dialogs\DialogService.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Dialogs\InputDialog.xaml.cs">
+      <DependentUpon>Dialogs\InputDialog.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="ResultWindow.xaml.cs">
       <DependentUpon>ResultWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WeekRecordWindow.xaml.cs">
+      <DependentUpon>WeekRecordWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="EntryWindow.xaml.cs">
+      <DependentUpon>EntryWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Converters\StatusTextConverter.cs" />
@@ -98,7 +122,9 @@
     <Compile Include="Converters\Scale.cs" />
     <Compile Include="Models\AppData.cs" />
     <Compile Include="Models\Student.cs" />
+    <Compile Include="Models\WeeklyRecord.cs" />
     <Compile Include="Services\DataService.cs" />
+    <Compile Include="Services\WeeklyRecordService.cs" />
     <Compile Include="Prompts.cs" />
   </ItemGroup>
   <ItemGroup>

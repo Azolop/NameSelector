@@ -1,7 +1,7 @@
 <Application x:Class="NameSelector.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="MainWindow.xaml">
+             StartupUri="EntryWindow.xaml">
     <Application.Resources>
         <!-- 通用大按钮样式 -->
         <Style x:Key="AppButton" TargetType="Button">

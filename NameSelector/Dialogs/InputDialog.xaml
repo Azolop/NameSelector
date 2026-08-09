@@ -1,0 +1,63 @@
+<Window x:Class="NameSelector.Dialogs.InputDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:NameSelector.Converters"
+        Title="输入"
+        Height="360" Width="520"
+        MinHeight="300" MinWidth="420"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Microsoft YaHei"
+        Background="#F5F6F7"
+        ShowInTaskbar="False">
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="TitleText"
+                   converters:Scale.FontSize="30,26"
+                   FontWeight="Bold"
+                   Foreground="#2980B9"
+                   TextWrapping="Wrap" />
+
+        <TextBlock x:Name="MessageText"
+                   Grid.Row="1"
+                   converters:Scale.FontSize="20,18"
+                   Foreground="#7F8C8D"
+                   TextWrapping="Wrap"
+                   Margin="0,10,0,14" />
+
+        <TextBox x:Name="InputBox"
+                 Grid.Row="2"
+                 VerticalAlignment="Top"
+                 converters:Scale.FontSize="24,20"
+                 Padding="10,8"
+                 BorderBrush="#BDC3C7"
+                 Background="White"
+                 Foreground="#2C3E50" />
+
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,18,0,0">
+            <Button Content="确定"
+                    Style="{StaticResource AppButton}"
+                    converters:Scale.FontSize="20,18"
+                    Background="#2980B9"
+                    MinWidth="110"
+                    IsDefault="True"
+                    Click="Ok_Click" />
+            <Button Content="取消"
+                    Style="{StaticResource AppButton}"
+                    converters:Scale.FontSize="20,18"
+                    Background="#7F8C8D"
+                    MinWidth="110"
+                    IsCancel="True"
+                    Click="Cancel_Click" />
+        </StackPanel>
+    </Grid>
+</Window>
