@@ -12,13 +12,13 @@
     <Grid Margin="16">
         <!-- 提示、编辑区、按钮区按 1 : 7 : 1.4 自适应 -->
         <Grid.RowDefinitions>
-            <RowDefinition Height="1*" />
-            <RowDefinition Height="7*" />
+            <RowDefinition Height="1.6*" />
+            <RowDefinition Height="6.2*" />
             <RowDefinition Height="1.4*" />
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0"
-                   Text="每行格式：名称,组号,是否组长，如 张三,1,true。&#10;每组只能有一个组长；单人群组自动成为组长。保存后名单重新编号，点名状态会被重置。"
+                   Text="每行格式：名称,组号,是否组长，如 张三,1,是。&#10;每组只能有一个组长；单人群组自动成为组长。&#10;保存后名单重新编号，点名状态会被重置。"
                    converters:Scale.FontSize="18,18"
                    Foreground="#7F8C8D"
                    TextWrapping="Wrap"

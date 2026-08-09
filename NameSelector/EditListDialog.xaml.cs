@@ -31,7 +31,7 @@ namespace NameSelector
         /// <summary>编辑框显示格式：有组名的显示为「组名:姓名」，否则只显示姓名。</summary>
         private static string FormatLine(Student student)
         {
-            return student.Name + "," + student.GroupNumber + "," + (student.IsLeader ? "true" : "false");
+            return student.Name + "," + student.GroupNumber + "," + (student.IsLeader ? "是" : "否");
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
